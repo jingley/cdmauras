@@ -1,0 +1,51 @@
+## Interface: 120000, 120001, 120005, 120007
+## Title: CDMAuras
+## Notes: Attempt to bring back some functionality of spell/buff tracking customization from weakauras
+## Author: Jon Ross Ingley
+## Version: 1.0
+## SavedVariables: CDMAurasDB
+## Category: Buffs & Debuffs
+
+# Start libraries
+libs\LibStub\LibStub.lua
+libs\LibSharedMedia-3.0\lib.xml
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+libs\LibCustomGlow-1.0\LibCustomGlow-1.0.lua
+libs\LibEQOL\LibEQOL.xml
+libs\LibDeflate\LibDeflate.lua
+# End libraries
+
+utils/utils.lua
+utils/editMode.lua
+utils/CDMUtils.lua
+
+engine/engine.lua
+
+options/options.lua
+options/cdmOptions.lua
+options/alertOptions/Theme.lua
+options/alertOptions/IconPicker.lua
+options/alertOptions/ConditionEditor.lua
+options/alertOptions/NewAlertGUI.lua
+options/alertOptions/AlertEditor.lua
+
+alerts/conditionalMixin.lua
+conditions/buff.lua
+conditions/buffDuration.lua
+conditions/cooldown.lua
+conditions/always.lua
+conditions/power.lua
+conditions/stacks.lua
+alerts/cooldownTexts/cooldownText.lua
+alerts/cooldownTexts/manager.lua
+alerts/buffTexts/buffText.lua
+alerts/buffTexts/manager.lua
+alerts/glow/customGlow.lua
+alerts/glow/manager.lua
+alerts/border/border.lua
+alerts/border/manager.lua
+alerts/icon/icon.lua
+alerts/icon/manager.lua
+alerts/manager.lua
+
+CDMAuras.lua
