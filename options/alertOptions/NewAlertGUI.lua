@@ -85,22 +85,18 @@ local function BuildFrame()
         end
     end)
 
-    -- Paste button — only visible when the clipboard holds copied alert settings.
-    local clip = ns.AlertClipboard
-    if clip and clip.data and clip.alertType then
-        local pasteLabel = "Paste Copied "
-                            .. (clip.alertType == "border" and "Border" or "Glow")
-        local pasteButton = Theme.CreateButton(f, BTN_W, BTN_H,
-                pasteLabel)
-            pasteButton:SetPoint("TOP", f, "CENTER", 0, (-1 * (BTN_H)))
-            pasteButton:SetScript("OnClick", function()
-                local id = f._cooldownID
-                Close()
-                if ns.AlertEditor and ns.AlertEditor.PasteFromClipboard then
-                    ns.AlertEditor.PasteFromClipboard(id)
-                end
-            end)
-    end
+    -- Paste button — shown/hidden dynamically in Open() based on clipboard state.
+    local pasteButton = Theme.CreateButton(f, BTN_W, BTN_H, "Paste Copied")
+    pasteButton:SetPoint("TOP", f, "CENTER", 0, (-1 * (BTN_H)))
+    pasteButton:SetScript("OnClick", function()
+        local id = f._cooldownID
+        Close()
+        if ns.AlertEditor and ns.AlertEditor.PasteFromClipboard then
+            ns.AlertEditor.PasteFromClipboard(id)
+        end
+    end)
+    pasteButton:Hide()
+    f.pasteButton = pasteButton
 
     f:Hide()
     return f
@@ -123,6 +119,18 @@ function NewAlertGUI.Open(cooldownID)
         frame = BuildFrame()
     end
     frame._cooldownID = cooldownID
+    -- Update paste button visibility based on current clipboard state.
+    if frame.pasteButton then
+        local clip = ns.AlertClipboard
+        if clip and clip.data and clip.alertType then
+            local pasteLabel = "Paste Copied "
+                .. (clip.alertType == "border" and "Border" or "Glow")
+            frame.pasteButton:SetButtonText(pasteLabel)
+            frame.pasteButton:Show()
+        else
+            frame.pasteButton:Hide()
+        end
+    end
     if frame.titleText then
         local entry = ns.CDMUtils and (
             (ns.CDMUtils.GetBuff  and ns.CDMUtils.GetBuff(cooldownID))
