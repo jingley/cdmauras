@@ -11,10 +11,17 @@ local GROW_DIRECTIONS = {
     { text = "Up",   value = "UP" },
     { text = "Down", value = "DOWN" },
 }
-local DEFAULT_FONT      = "Fonts\\FRIZQT__.TTF"
-local DEFAULT_FONT_SIZE = 20
-local DEFAULT_GROW_DIR  = "UP"
-local PREVIEW_TEXT      = "No Cooldown Spell 10"
+local DEFAULT_FONT            = "Fonts\\FRIZQT__.TTF"
+local DEFAULT_FONT_SIZE       = 20
+local DEFAULT_GROW_DIR        = "UP"
+local DEFAULT_COLOR           = { r = 1, g = 1, b = 1, a = 1 }
+local DEFAULT_UPDATE_INTERVAL = 1
+local DEFAULT_PRECISION       = "whole"
+local PRECISION_OPTIONS       = {
+    { text = "Whole number  (e.g. 5)",        value = "whole"   },
+    { text = "1 decimal place  (e.g. 4.7)",   value = "decimal" },
+}
+local PREVIEW_TEXT = "No Cooldown Spell 10"
 
 local previewFontString = ns.CooldownTextManagerFrame:CreateFontString(nil, "OVERLAY")
 previewFontString:Hide()
@@ -37,6 +44,11 @@ local SetSetting = function(layoutName, key, value)
     ns.EditModeUtils.SetLayoutSetting(managerFrame.editModeName, layoutName, key, value)
 end
 
+local GetColor = function()
+    local c = GetSetting(nil, "color", DEFAULT_COLOR)
+    return c.r or 1, c.g or 1, c.b or 1, c.a or 1
+end
+
 local ApplyPreviewStyle = function()
     local fontSize = GetSetting(nil, "fontSize", DEFAULT_FONT_SIZE)
     local font = GetSetting(nil, "font", DEFAULT_FONT)
@@ -45,7 +57,7 @@ local ApplyPreviewStyle = function()
     if not success and font ~= DEFAULT_FONT then
         previewFontString:SetFont(DEFAULT_FONT, fontSize, "OUTLINE")
     end
-    previewFontString:SetTextColor(1, 1, 1, 1)
+    previewFontString:SetTextColor(GetColor())
     previewFontString:SetText(PREVIEW_TEXT)
     previewFontString:SetJustifyH("LEFT")
     previewFontString:ClearAllPoints()
@@ -106,6 +118,41 @@ local BuildEditModeSettings = function()
                 SetSetting(layout, "growDirection", value)
             end,
         },
+        {
+            name    = "Color",
+            kind    = SettingType.Color,
+            default = DEFAULT_COLOR,
+            get = function(layout) return GetSetting(layout, "color", DEFAULT_COLOR) end,
+            set = function(layout, value)
+                SetSetting(layout, "color", value)
+                ApplyPreviewStyle()
+            end,
+        },
+        {
+            name      = "Update Interval (seconds)",
+            kind      = SettingType.Slider,
+            default   = DEFAULT_UPDATE_INTERVAL,
+            minValue  = 0.1,
+            maxValue  = 5,
+            valueStep = 0.1,
+            allowInput = true,
+            tooltip   = "How often each cooldown text refreshes. Lower values are smoother but increase CPU usage per spell on cooldown.",
+            formatter = function(v) return string.format("%.1f", v) end,
+            get = function(layout) return GetSetting(layout, "updateInterval", DEFAULT_UPDATE_INTERVAL) end,
+            set = function(layout, value)
+                SetSetting(layout, "updateInterval", math.max(0.1, value))
+            end,
+        },
+        {
+            name    = "Display Precision",
+            kind    = SettingType.Dropdown,
+            default = DEFAULT_PRECISION,
+            values  = PRECISION_OPTIONS,
+            get = function(layout) return GetSetting(layout, "precision", DEFAULT_PRECISION) end,
+            set = function(layout, value)
+                SetSetting(layout, "precision", value)
+            end,
+        },
     }
 end
 
@@ -141,6 +188,7 @@ end
 local OnLayoutChanged = function()
     if not managerFrame.editModeName then return end
     ApplyPreviewStyle()
+    CooldownTextManager.CreateAll()
 end
 
 local SetupManagerFrame = function ()

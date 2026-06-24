@@ -102,14 +102,10 @@ local NotifySpellOnCooldown = function(spellID)
 	if cooldownID then
 		local spellCooldown = C_Spell.GetSpellCooldown(spellID)
 		if spellCooldown then
-			if spellCooldown.isActive and spellCooldown.isEnabled and not spellCooldown.isOnGCD then
-				API.SendInternalMessage("CDMA_ON_COOLDOWN", cooldownID)
-			else
-				if not tContains(registeredForSpellUpdate, spellID) then
-					tinsert(registeredForSpellUpdate, spellID)
-				end
-				eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
+			if not tContains(registeredForSpellUpdate, spellID) then
+				tinsert(registeredForSpellUpdate, spellID)
 			end
+			eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 		end
 	end
 end
@@ -296,6 +292,10 @@ API.UnregisterCooldownTracking = function(cooldownID)
 	if cooldownObject then
 		trackedCooldowns[cooldownID] = nil
 		spellIDToCooldownIDMap[cooldownObject.spellID] = nil
+	end
+	if not next(trackedCooldowns) then
+		wipe(registeredForSpellUpdate)
+		eventFrame:UnregisterEvent("SPELL_UPDATE_COOLDOWN")
 	end
 end
 

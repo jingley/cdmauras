@@ -7,15 +7,6 @@ local CooldownText = {}
 ns.CooldownText = CooldownText
 local C_Spell, C_Timer, string = C_Spell, C_Timer, string
 
-local RefreshDuration = function(cooldownObject)
-	if not cooldownObject then
-		return
-	end
-	if not cooldownObject.duration then
-		cooldownObject.duration = C_Spell.GetSpellCooldownDuration(cooldownObject.spellID)
-	end
-end
-
 function CooldownText:DisableAndHideAlert()
 	local cooldownObject = self.cooldownObject
     if not cooldownObject then
@@ -24,7 +15,6 @@ function CooldownText:DisableAndHideAlert()
     if cooldownObject.ticker then
 		cooldownObject.ticker:Cancel()
 	end
-	cooldownObject.duration = nil
 	local fontString = cooldownObject.fontString
 	if fontString then
 		fontString:SetShown(false)
@@ -37,20 +27,17 @@ function CooldownText:UpdateCDText(cooldownObject)
 		return
 	end
 
-	RefreshDuration(cooldownObject)
-	local duration = cooldownObject.duration
-
-	if duration then
-		local remainingDuration = duration:GetRemainingDuration(1)
-		local fontString = cooldownObject.fontString
-		if not fontString then
-			return
-		end
-		fontString:SetFormattedText("No %s %.1f", cooldownObject.name, remainingDuration)
-		if not fontString:IsShown() then
-			fontString:SetShown(true)
-			ns.CooldownTextManager.UpdateShownText(self, fontString, true)
-		end
+	local duration = C_Spell.GetSpellCooldownDuration(cooldownObject.spellID, true)
+	local remainingDuration = duration:GetRemainingDuration()
+	local fontString = cooldownObject.fontString
+	if not fontString then
+		return
+	end
+	local fmt = self.textFormat or "No %s %.0f"
+	fontString:SetFormattedText(fmt, cooldownObject.name, remainingDuration)
+	if not fontString:IsShown() then
+		fontString:SetShown(true)
+		ns.CooldownTextManager.UpdateShownText(self, fontString, true)
 	end
 end
 
@@ -63,7 +50,7 @@ function CooldownText:ActivateTicker()
 	if cooldownObject.ticker then
 		cooldownObject.ticker:Cancel()
 	end
-	local ticker = C_Timer.NewTicker(0.1, function()
+	local ticker = C_Timer.NewTicker(self.tickerInterval or 1, function()
 	self:UpdateCDText(cooldownObject) end)
 	cooldownObject.ticker = ticker
 end
@@ -79,13 +66,17 @@ function CooldownText:Initialize(option, cooldownID)
 	self.cooldownObject = cooldownObject
 	if cooldownObject then
 		self.spellID = cooldownObject.spellID
-		local fontString = ns.CooldownTextManagerFrame:CreateFontString(nil, "OVERLAY")
 		local editModeName = ns.CooldownTextManagerFrame.editModeName
+		local precision = ns.EditModeUtils.GetLayoutSetting(editModeName, nil, "precision", "whole")
+		self.textFormat     = precision == "decimal" and "No %s %.1f" or "No %s %.0f"
+		self.tickerInterval = ns.EditModeUtils.GetLayoutSetting(editModeName, nil, "updateInterval", 1)
+		local fontString = ns.CooldownTextManagerFrame:CreateFontString(nil, "OVERLAY")
 		local fontSize = ns.EditModeUtils.GetLayoutSetting(editModeName, nil, "fontSize", 16)
-		local font = ns.EditModeUtils.GetLayoutSetting(editModeName, nil, "font",     "Fonts\\FRIZQT__.TTF")
+		local font = ns.EditModeUtils.GetLayoutSetting(editModeName, nil, "font", "Fonts\\FRIZQT__.TTF")
 		fontString.fontSize = fontSize
 		fontString:SetFont(font, fontSize, "OUTLINE")
-		fontString:SetTextColor(1, 1, 1, 1)
+		local editModeColor = ns.EditModeUtils.GetLayoutSetting(editModeName, nil, "color", { r = 1, g = 1, b = 1, a = 1 })
+		fontString:SetTextColor(editModeColor.r or 1, editModeColor.g or 1, editModeColor.b or 1, editModeColor.a or 1)
 		fontString:SetTextToFit(string.format("No %s 100s", cooldownObject.name))
 		SetupCenterAdjustments(fontString)
 		fontString:SetJustifyH("LEFT")

@@ -16,6 +16,7 @@ local DEFAULT_FONT = "Fonts\\FRIZQT__.TTF"
 local DEFAULT_FONT_SIZE = 18
 local DEFAULT_GROW_DIR = "UP"
 local DEFAULT_MAX_VISIBLE_ALERTS = 5
+local DEFAULT_COLOR = { r = 1, g = 0, b = 0, a = 1 }
 local PREVIEW_TEXT = "Buff Name Missing"
 
 local previewFontString = managerFrame:CreateFontString(nil, "OVERLAY")
@@ -40,6 +41,11 @@ BuffTextManager.SetupCenterAdjustments = function(fontString)
     fontString.managerXOffset = offset
 end
 
+local function GetColor()
+    local c = GetSetting(nil, "color", DEFAULT_COLOR)
+    return c.r or 1, c.g or 0, c.b or 0, c.a or 1
+end
+
 BuffTextManager.ApplyFontStyleToText = function(fontString)
     if not fontString then
         return
@@ -53,7 +59,7 @@ BuffTextManager.ApplyFontStyleToText = function(fontString)
     if not success and font ~= DEFAULT_FONT then
         fontString:SetFont(DEFAULT_FONT, fontSize, "OUTLINE")
     end
-    fontString:SetTextColor(1, 1, 1, 1)
+    fontString:SetTextColor(GetColor())
     fontString:SetJustifyH("LEFT")
 end
 
@@ -179,6 +185,16 @@ local function BuildEditModeSettings()
             set = function(layout, value)
                 SetSetting(layout, "maxVisibleAlerts", value)
                 BuffTextManager.UpdatePositions()
+            end,
+        },
+        {
+            name    = "Color",
+            kind    = SettingType.Color,
+            default = DEFAULT_COLOR,
+            get = function(layout) return GetSetting(layout, "color", DEFAULT_COLOR) end,
+            set = function(layout, value)
+                SetSetting(layout, "color", value)
+                OnLayoutChanged()
             end,
         },
     }
