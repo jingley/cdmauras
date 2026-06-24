@@ -1,6 +1,7 @@
 local addonName, ns = ...
 local CDMAuras = {
     initialized = false,
+    cdmSettingsOpen = false,
 }
 ns.Addon = CDMAuras
 local addonEventListener = CreateFrame("Frame", nil)
@@ -104,7 +105,16 @@ function CDMAuras:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
 
         end
         EventRegistry:RegisterCallback("CooldownViewerSettings.OnHide", function()
+            self.cdmSettingsOpen = false
             CDMAuras.BuildOrRefresh()
+        end)
+        EventRegistry:RegisterCallback("CooldownViewerSettings.OnShow", function()
+            self.cdmSettingsOpen = true
+            CDMAuras.BuildOrRefresh()
+        end)
+        EventRegistry:RegisterCallback("CooldownViewerSettings.OnDataChanged", function()
+            if not self.cdmSettingsOpen then return end
+            ns.CDMUtils.RefreshCDMChildren()
         end)
     end
 end
@@ -181,5 +191,3 @@ addonEventListener:SetScript("OnEvent", function(_, event, ...)
 
     CDMAuras:OnEvent(event, ...)
 end)
-
---todo need to refresh the CDM children when you move spells/buffs in the CDM settings on a hook or event.
