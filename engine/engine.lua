@@ -8,7 +8,7 @@ ns.Engine = Engine
 local API = {}
 Engine.API = API
 local eventFrame = CreateFrame("Frame", nil)
-local GetAuraDuration, hooksecurefunc, table, C_Spell, GetAuraDataByAuraInstanceID = C_UnitAuras.GetAuraDuration, hooksecurefunc, table, C_Spell, C_UnitAuras.GetAuraDataByAuraInstanceID
+local GetAuraDuration, hooksecurefunc, table, C_Spell, GetAuraDataByAuraInstanceID, UnitExists = C_UnitAuras.GetAuraDuration, hooksecurefunc, table, C_Spell, C_UnitAuras.GetAuraDataByAuraInstanceID, UnitExists
 local aurasCache = {}
 local auraInstanceIDCache = {}
 local cooldownCache = {}
@@ -246,6 +246,10 @@ local UNIT_AURA = function(_, unit, updateInfo)
 		end
 	end
 end
+
+local PLAYER_TARGET_CHANGED = function()
+	API.SendInternalMessage("CDMA_TARGET_CHANGED", UnitExists("target"))
+end
 -- End Event Handlers
 
 -- Start Exposed API
@@ -258,6 +262,7 @@ function API:StartEngine()
 	eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_STOP", "player")
 	eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
 	eventFrame:RegisterUnitEvent("UNIT_AURA", "player")
+	eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 	eventFrame:SetScript("OnEvent", function(self, event, ...)
 		if event == "UNIT_AURA" then
 			UNIT_AURA(event, ...)
@@ -271,6 +276,8 @@ function API:StartEngine()
 			UNIT_SPELLCAST_STOP(event, ...)
 		elseif event == "UNIT_POWER_UPDATE" then
 			UNIT_POWER_UPDATE(event, ...)
+		elseif event == "PLAYER_TARGET_CHANGED" then
+			PLAYER_TARGET_CHANGED()
 		end
 	end)
 end

@@ -61,6 +61,10 @@ function ConditionalMixinMeta:SetupConditions(options)
             elseif conditionOptions.type == "buffDuration" then
                 condition = CreateFromMixins(ns.BuffDuration)
                 condition.isSecretCondition = true
+            elseif conditionOptions.type == "target" then
+                condition = CreateFromMixins(ns.Target)
+            elseif conditionOptions.type == "lastSpellCast" then
+                condition = CreateFromMixins(ns.LastSpellCast)
             end
             if condition then
                 condition.isLocked = conditionOptions._locked == true

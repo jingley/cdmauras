@@ -56,12 +56,14 @@ local FIELD_W = 268   -- field width inside the editor scroll area
 -- Condition type definitions
 -- ---------------------------------------------------------------------------
 local CONDITION_DEFS = {
-    { type = "always",       label = "Always"        },
-    { type = "buff",         label = "Buff"          },
-    { type = "cooldown",     label = "Cooldown"      },
-    { type = "buffDuration", label = "Buff Duration" },
-    { type = "power",        label = "Power"         },
-    { type = "stacks",       label = "Stacks"        },
+    { type = "always",        label = "Always"          },
+    { type = "buff",          label = "Buff"            },
+    { type = "cooldown",      label = "Cooldown"        },
+    { type = "buffDuration",  label = "Buff Duration"   },
+    { type = "power",         label = "Power"           },
+    { type = "stacks",        label = "Stacks"          },
+    { type = "target",        label = "Target"          },
+    { type = "lastSpellCast", label = "Last Spell Cast" },
 }
 
 -- Operators for range-capable conditions (power, buffDuration).
@@ -201,6 +203,12 @@ local function GetConditionSummary(cond)
         local name = FindEntryLabel(buffEntries, cond.cooldownID,
             cond.cooldownID and tostring(cond.cooldownID) or "?")
         return string.format("%s  stacks %s %d", name, cond.operator or ">", tonumber(cond.threshold) or 1)
+
+    elseif t == "target" then
+        return cond.negate and "Doesn't Have Target" or "Has Target"
+
+    elseif t == "lastSpellCast" then
+        return string.format("Last cast: %s", cond.spellID and tostring(cond.spellID) or "?")
     end
 
     return ""
@@ -742,6 +750,16 @@ function RebuildEditorFields(alertObject)
         AddNumInput("Stack threshold",
             function() return cond.threshold or 1 end,
             function(v) cond.threshold = math.max(1, math.floor(v)) end)
+
+    elseif t == "target" then
+        AddToggle("Negate  (active when player does NOT have a target)",
+            function() return cond.negate == true end,
+            function(v) cond.negate = v end)
+
+    elseif t == "lastSpellCast" then
+        AddNumInput("Spell ID",
+            function() return cond.spellID or 0 end,
+            function(v) cond.spellID = math.max(0, math.floor(v)) end)
     end
 
     editorContent:SetHeight(math.max(1, yOff + PAD))
@@ -891,6 +909,10 @@ function ConditionEditor.RenderInHost(host, alertObject)
                                 newCond.operator            = ">="
                                 newCond.threshold           = 0.4
                                 newCond.thresholdLow        = 0
+                            elseif dtype == "target" then
+                                newCond.negate = false
+                            elseif dtype == "lastSpellCast" then
+                                newCond.spellID = 0
                             end
                             alertObject.conditions[#alertObject.conditions + 1] = newCond
                             selectedIndex = #alertObject.conditions

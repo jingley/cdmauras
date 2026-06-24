@@ -43,7 +43,6 @@ Conditions can be used as **Any** (OR) or **All** (AND) logic. Buff-sourced spel
 > **More features are planned**, including:
 > 
 > *   Sharing with Import/Export
-> *   More Conditions, i.e. Has Target, In Combat, Last Spell Cast, etc…
 > *   More customization options for Cooldown and Buff Text alerts
 > *   Conditions support for custom icons
 > *   Standalone custom text alerts with full condition control
