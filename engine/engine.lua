@@ -315,7 +315,7 @@ API.IsSpellOnCooldown = function(cooldownID)
 	if cooldownObject then
 		local spellCooldown = C_Spell.GetSpellCooldown(cooldownObject.spellID)
 		if spellCooldown then
-			if spellCooldown.isActive and spellCooldown.isEnabled and not spellCooldown.isOnGCD then
+			if spellCooldown.isActive and spellCooldown.isEnabled and spellCooldown.isOnGCD == false then
 				return true
 			end
 		end
