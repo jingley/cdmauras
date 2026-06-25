@@ -19,6 +19,9 @@ local createPlaceholderFrameForCDMChild = function(child)
     placeholder:SetFrameStrata(child:GetFrameStrata())
     placeholder:SetFrameLevel(1000)
     placeholders[placeholder.cooldownID] = placeholder
+    placeholder:SetScript("OnSizeChanged", function(self)
+        ns.GlowManager.RecreatePlaceholderGlows(self.cooldownID)
+    end)
     return placeholder
 end
 

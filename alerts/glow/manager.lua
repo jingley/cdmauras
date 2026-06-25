@@ -25,6 +25,16 @@ GlowManager.GetGlow = function (cooldownID, options)
     end
 end
 
+GlowManager.GetGlows = function (cooldownID)
+    local fetchedGlows = {}
+    for _, glow in ipairs(glows) do
+        if glow.cooldownID == cooldownID  then
+            tinsert(fetchedGlows, glow)
+        end
+    end
+    return fetchedGlows
+end
+
 GlowManager.Initialize = function(cooldownID, option)
     local source = ns.CDMUtils.GetCDMSourceByID(cooldownID)
     if source and option.cooldownID and option.name then
@@ -64,6 +74,21 @@ GlowManager.CreateAll = function()
     end
     for cooldownID, options in pairs(ns.Utils.GetDB().glows) do
         for _, option in ipairs(options) do
+            GlowManager.Initialize(cooldownID, option)
+        end
+    end
+end
+
+GlowManager.RecreatePlaceholderGlows = function(cooldownID)
+    for _, glow in pairs(GlowManager.GetGlows(cooldownID)) do
+        if glow then
+            glow:Destroy()
+        end
+    end
+
+    local placeholderGlows = ns.Utils.GetDB().glows[cooldownID]
+    if placeholderGlows then
+        for _, option in ipairs(placeholderGlows) do
             GlowManager.Initialize(cooldownID, option)
         end
     end
