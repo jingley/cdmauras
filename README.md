@@ -34,6 +34,7 @@ Every alert is gated by one or more conditions. All alerts show only when their 
 | <strong>Stacks</strong> |Show based buff's stack count. Does not support buffs which have no stacks. Supports greater than and greater then or equals only. Border alerts only. Multiple Stacks conditions can be added — the border triggers when <strong>any one</strong> of them is satisfied. |
 | <strong>Target</strong> |Show when the player has an active target (or has no target when negated). |
 | <strong>Last Spell Cast</strong> |Show when the last successfully cast spell matches a given Spell ID. |
+| <strong>Spell Overlay</strong> |Show when the game's built-in spell activation overlay (proc glow) is active for a spell (or absent when negated). |
 
 Conditions can be used as **Any** (OR) or **All** (AND) logic. Buff-sourced spells automatically lock in a "Has Buff" condition that cannot be removed.
 

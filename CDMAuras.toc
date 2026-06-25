@@ -38,6 +38,7 @@ conditions/power.lua
 conditions/stacks.lua
 conditions/target.lua
 conditions/lastSpellCast.lua
+conditions/spellOverlay.lua
 alerts/cooldownTexts/cooldownText.lua
 alerts/cooldownTexts/manager.lua
 alerts/buffTexts/buffText.lua

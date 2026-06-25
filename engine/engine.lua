@@ -14,6 +14,8 @@ local auraInstanceIDCache = {}
 local cooldownCache = {}
 local trackedCooldowns = {}
 local spellIDToCooldownIDMap = {}
+local spellOverlayIDToCooldownIDMap = {}
+local trackedSpellOverlays = {}
 local registeredForSpellUpdate = {}
 local emptyAura = {}
 local targetAuras = {}
@@ -246,6 +248,17 @@ end
 local PLAYER_TARGET_CHANGED = function()
 	API.SendInternalMessage("CDMA_TARGET_CHANGED", UnitExists("target"))
 end
+
+local CDMA_SPELL_OVERLAY = function(spellID, show)
+	local cooldownID = spellOverlayIDToCooldownIDMap[spellID]
+	if not cooldownID then return end
+
+	if show then
+		API.SendInternalMessage("CDMA_SPELL_OVERLAY_SHOW", cooldownID)
+	else
+		API.SendInternalMessage("CDMA_SPELL_OVERLAY_HIDE", cooldownID)
+	end
+end
 -- End Event Handlers
 
 -- Start Exposed API
@@ -274,9 +287,39 @@ function API:StartEngine()
 			UNIT_POWER_UPDATE(event, ...)
 		elseif event == "PLAYER_TARGET_CHANGED" then
 			PLAYER_TARGET_CHANGED()
+		elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
+			CDMA_SPELL_OVERLAY(..., true)
+		elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
+			CDMA_SPELL_OVERLAY(..., false)
 		end
 	end)
 end
+
+--these register functions in the current implementation are fine, but if I modify alerts to be able to get destroyed individually again they would have bugs. As of now destroy is not called for changes to conditions unless all get rebuilt.
+API.RegisterSpellActivationOverlay = function(cooldownID)
+	local cooldownObject = cooldownCache[cooldownID]
+	if cooldownObject then
+		trackedSpellOverlays[cooldownID] = true
+		spellOverlayIDToCooldownIDMap[cooldownObject.spellID] = cooldownID
+		eventFrame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
+		eventFrame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
+		return C_SpellActivationOverlay.IsSpellOverlayed(cooldownObject.spellID)
+	end
+end
+
+API.UnregisterSpellActivationOverlay = function(cooldownID)
+	local cooldownObject = cooldownCache[cooldownID]
+	if cooldownObject then
+		trackedSpellOverlays[cooldownID] = nil
+		spellOverlayIDToCooldownIDMap[cooldownObject.spellID] = nil
+	end
+
+	if not next(trackedSpellOverlays) then
+		eventFrame:UnregisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
+		eventFrame:UnregisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
+	end
+end
+
 
 API.RegisterCooldownTracking = function(cooldownID)
     local cooldownObject = cooldownCache[cooldownID]

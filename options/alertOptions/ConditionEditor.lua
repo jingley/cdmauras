@@ -64,6 +64,7 @@ local CONDITION_DEFS = {
     { type = "stacks",        label = "Stacks"          },
     { type = "target",        label = "Target"          },
     { type = "lastSpellCast", label = "Last Spell Cast" },
+    { type = "spellOverlay",  label = "Spell Overlay"   },
 }
 
 -- Operators for range-capable conditions (power, buffDuration).
@@ -209,6 +210,12 @@ local function GetConditionSummary(cond)
 
     elseif t == "lastSpellCast" then
         return string.format("Last cast: %s", cond.spellID and tostring(cond.spellID) or "?")
+
+    elseif t == "spellOverlay" then
+        local spellEntries = GetSpellEntries()
+        local name = FindEntryLabel(spellEntries, cond.cooldownID,
+            cond.cooldownID and tostring(cond.cooldownID) or "?")
+        return (cond.negate and "No overlay: " or "Overlay: ") .. name
     end
 
     return ""
@@ -760,6 +767,15 @@ function RebuildEditorFields(alertObject)
         AddNumInput("Spell ID",
             function() return cond.spellID or 0 end,
             function(v) cond.spellID = math.max(0, math.floor(v)) end)
+
+    elseif t == "spellOverlay" then
+        local spellEntries = GetSpellEntries()
+        AddSearchDropdown("Spell", spellEntries,
+            function() return cond.cooldownID end,
+            function(v) cond.cooldownID = v end)
+        AddToggle("Negate  (active when overlay is NOT present)",
+            function() return cond.negate == true end,
+            function(v) cond.negate = v end)
     end
 
     editorContent:SetHeight(math.max(1, yOff + PAD))
@@ -913,6 +929,9 @@ function ConditionEditor.RenderInHost(host, alertObject)
                                 newCond.negate = false
                             elseif dtype == "lastSpellCast" then
                                 newCond.spellID = 0
+                            elseif dtype == "spellOverlay" then
+                                newCond.cooldownID = alertObject.cooldownID or nil
+                                newCond.negate     = false
                             end
                             alertObject.conditions[#alertObject.conditions + 1] = newCond
                             selectedIndex = #alertObject.conditions

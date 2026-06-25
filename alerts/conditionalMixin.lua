@@ -65,6 +65,8 @@ function ConditionalMixinMeta:SetupConditions(options)
                 condition = CreateFromMixins(ns.Target)
             elseif conditionOptions.type == "lastSpellCast" then
                 condition = CreateFromMixins(ns.LastSpellCast)
+            elseif conditionOptions.type == "spellOverlay" then
+                condition = CreateFromMixins(ns.SpellOverlay)
             end
             if condition then
                 condition.isLocked = conditionOptions._locked == true
