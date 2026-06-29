@@ -238,7 +238,7 @@ local UNIT_AURA = function(_, unit, updateInfo)
 		local cooldownID = auraInstanceIDCache[auraInstanceID]
 		if cooldownID then
 			local aura = aurasCache[cooldownID]
-			if aura.unit == unit then
+			if aura and aura.unit == unit then
 				CDMA_AURA_UPDATE(cooldownID, auraInstanceID, unit)
 			end
 		end
