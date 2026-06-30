@@ -85,22 +85,6 @@ The editor opens as a panel beside the CDM settings window.
 
 ***
 
-## How it works — the CDMAuras Engine
-
-The Cooldown Manager introduced in Midnight ships with strict restrictions that make it effectively read-only for third-party addons. There is no supported API to attach alerts to CDM buttons, poll their state, or know when a spell goes on or off cooldown through the CDM itself.
-
-CDMAuras runs on a purpose-built event engine that works entirely within the Midnight secret restrictions constraints.
-
-**Zero addon-side polling.** A single shared `eventFrame` handles all Blizzard events (`UNIT_AURA`, `UNIT_SPELLCAST_SUCCEEDED`, `UNIT_POWER_UPDATE`, etc.) and fans them out through an internal message bus. Alert objects subscribe only to the specific messages they need — no alert ever registers a Blizzard event directly, and nothing runs on a tick unless a cooldown text is actively counting down.
-
-**CDM hook layer.** Rather than scanning frames on a timer, the engine uses `hooksecurefunc` on CDM viewer methods to receive live cooldown and aura state changes at exactly the moment the CDM itself processes them — no polling, no lag.
-
-**Aura instance ID tracking.** Buff state is tracked via `auraInstanceID` rather than spell name or ID. When the CDM registers a buff frame the engine caches an `auraInstanceID → cooldownID` mapping so incoming `UNIT_AURA` updates route directly to the correct alert in O(1) — no iteration over all active buffs on every aura event.
-
-**Opt-in cooldown tracking.** Only spells that have at least one active alert registered are tracked. A `spellID → cooldownID` reverse map means the per-cast handler does a single table lookup — cost scales with the number of tracked spells, not the size of the CDM.
-
-***
-
 ## Requirements
 
 *   **World of Warcraft: Retail** (Midnight)
